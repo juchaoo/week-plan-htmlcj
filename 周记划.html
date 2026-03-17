@@ -66,7 +66,6 @@
 
         #app-container { display: flex; width: 100vw; height: 100vh; }
 
-        /* --- Sidebar --- */
         aside {
             width: var(--sidebar-width);
             min-width: 240px; max-width: 50vw;
@@ -75,24 +74,22 @@
             border-right: 1px solid var(--grid-line);
             position: relative; flex-shrink: 0;
             display: flex; flex-direction: column;
-            padding: 5cqw; gap: 4cqw;
+            padding: 1.5rem; gap: 2rem;
             z-index: 20;
             transition: background-color 0.3s, border-color 0.3s;
         }
 
         #clock-display { font-size: 22cqw; line-height: 0.9; letter-spacing: -0.05em; }
-        #date-display { font-size: 3.5cqw; letter-spacing: 0.1em; }
+        #date-display { font-size: 4.5cqw; letter-spacing: 0.1em; }
         #current-task-title { font-size: 8cqw; line-height: 1.1; }
         .info-text { font-size: 3.5cqw; }
-        .lang-switch { font-size: 3cqw; font-weight: 500; color: var(--text-sub); cursor: pointer; transition: color 0.2s; }
+        .lang-switch { font-size: 0.75rem; font-weight: 500; color: var(--text-sub); cursor: pointer; transition: color 0.2s; }
         .lang-switch.active { color: var(--text-main); font-weight: 700; }
 
         #resizer { width: 8px; cursor: col-resize; background: transparent; z-index: 30; margin-left: -4px; margin-right: -4px; flex-shrink: 0; position: relative; }
         #resizer:hover { background: rgba(100,100,100,0.1); }
 
-        /* --- Main View --- */
         main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; background-color: var(--bg-body); transition: background-color 0.3s;}
-
         .calendar-grid { display: grid; grid-template-columns: 70px repeat(7, minmax(0, 1fr)); height: 100%; }
 
         .time-label-cell {
@@ -116,11 +113,8 @@
         .nav-circle-btn:hover { background: var(--nav-btn-hover); color: white; border-color: var(--nav-btn-hover); transform: translateY(-50%) scale(1.1); }
         #calendar-header:hover .nav-circle-btn { opacity: 1; }
 
-        /* Modals */
         .glass-modal { background: var(--modal-bg); box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.3); border: 1px solid var(--grid-line); color: var(--text-main); }
         .clean-input { background: transparent; border: none; border-bottom: 1px solid var(--grid-line); width: 100%; padding: 8px 0; font-family: inherit; outline: none; transition: border-color 0.3s; color: var(--text-main); }
-        .clean-input:focus { border-bottom-color: var(--text-main); }
-        .clean-input::placeholder { color: var(--text-sub); }
         
         .select-menu { 
             position: fixed; z-index: 100; background: var(--modal-bg); 
@@ -138,13 +132,14 @@
         .select-item:hover { background: rgba(128,128,128,0.1); }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        input[type="checkbox"] { accent-color: var(--text-main); width: 0.9rem; height: 0.9rem; cursor: pointer; border-color: var(--text-sub); }
+        .day-btn {
+            flex: 1; text-align: center; padding: 8px 0; font-size: 10px; font-weight: 600;
+            border: 1px solid var(--grid-line); border-radius: 6px; cursor: pointer;
+            transition: all 0.2s; color: var(--text-sub);
+        }
+        .day-btn.active { background: var(--text-main); color: var(--bg-body); border-color: var(--text-main); }
 
         .task-item { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 0.75rem; }
-        .dark .task-item { border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .task-item.past { color: var(--text-sub); opacity: 0.6; text-decoration: line-through; }
-        .task-item.current { color: var(--accent-focus); font-weight: 600; }
-        .task-item.future { color: var(--text-sub); opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -152,49 +147,47 @@
     <div id="app-container">
         <!-- Sidebar -->
         <aside id="sidebar">
-            <div class="mt-[1cqw]">
-                <div class="flex justify-between items-start">
-                    <h1 id="clock-display" class="font-light text-main -ml-[0.5cqw]">00:00</h1>
-                    <div class="flex flex-col items-end gap-2">
-                        <div class="flex gap-2 mt-1 select-none">
-                            <span onclick="setLang('en')" id="lang-en" class="lang-switch">EN</span>
-                            <span class="text-[3cqw] text-gray-300 dark:text-gray-700">|</span>
-                            <span onclick="setLang('zh')" id="lang-zh" class="lang-switch">中</span>
-                            <span class="text-[3cqw] text-gray-300 dark:text-gray-700">|</span>
-                            <span onclick="setLang('jp')" id="lang-jp" class="lang-switch">日</span>
-                        </div>
-                        
-                        <div class="flex items-center gap-3">
-                            <!-- Dark Mode Toggle -->
-                            <button onclick="toggleTheme()" class="text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors" title="Toggle Theme">
-                                <svg id="icon-moon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                                <svg id="icon-sun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                            </button>
-                            <!-- Reset View Button -->
-                            <button onclick="resetUI()" class="text-gray-400 hover:text-blue-500 transition-colors" title="Reset Layout & Theme">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            </button>
-                            <!-- Delete All Button -->
-                            <button onclick="confirmDeleteAll()" class="text-gray-400 hover:text-red-500 transition-colors" title="Clear All Data">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
+            <div class="flex justify-between items-center w-full">
+                <div class="flex gap-3 select-none">
+                    <span onclick="setLang('en')" id="lang-en" class="lang-switch">EN</span>
+                    <span onclick="setLang('zh')" id="lang-zh" class="lang-switch">中</span>
+                    <span onclick="setLang('jp')" id="lang-jp" class="lang-switch">日</span>
                 </div>
-                <div class="mt-[2cqw] flex items-center gap-3">
-                    <div class="h-px w-[6cqw] bg-gray-300 dark:bg-gray-700"></div>
+                
+                <div class="flex items-center gap-4">
+                    <button onclick="triggerImport()" class="text-gray-400 hover:text-purple-500 transition-colors text-[10px] font-bold tracking-widest uppercase">
+                        <span id="label-import">IMPORT</span>
+                        <input type="file" id="import-input" class="hidden" accept=".json" onchange="importData(event)">
+                    </button>
+                    <button onclick="exportData()" class="text-gray-400 hover:text-green-500 transition-colors text-[10px] font-bold tracking-widest uppercase">
+                        <span id="label-export">EXPORT</span>
+                    </button>
+                    <button onclick="toggleTheme()" class="text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
+                        <svg id="icon-moon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        <svg id="icon-sun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </button>
+                    <button onclick="resetUI()" class="text-gray-400 hover:text-blue-500 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col">
+                <h1 id="clock-display" class="font-light text-main -ml-[0.5cqw]">00:00</h1>
+                <div class="flex items-center gap-3 mt-2">
+                    <div class="h-px w-8 bg-gray-300 dark:bg-gray-700"></div>
                     <p id="date-display" class="font-medium uppercase text-sub">LOADING</p>
                 </div>
             </div>
 
             <div>
-                <div class="flex items-center gap-2 mb-[2cqw] opacity-0 transition-opacity duration-500" id="live-status-wrapper">
+                <div class="flex items-center gap-2 mb-4 opacity-0 transition-opacity duration-500" id="live-status-wrapper">
                     <div class="w-1.5 h-1.5 rounded-full bg-textMain animate-pulse"></div>
                     <span id="label-focus" class="info-text font-bold tracking-widest uppercase text-sub">Current Focus</span>
                 </div>
                 <div id="current-card" class="transition-all border-l-2 border-transparent pl-0">
-                    <h2 id="current-task-title" class="font-normal text-textMain mb-[2cqw] line-clamp-3 transition-colors">Free Time</h2>
-                    <div class="w-full bg-gray-100 dark:bg-gray-800 h-[2px] mb-[2cqw] overflow-hidden">
+                    <h2 id="current-task-title" class="font-normal text-textMain mb-4 line-clamp-3">Free Time</h2>
+                    <div class="w-full bg-gray-100 dark:bg-gray-800 h-[2px] mb-4 overflow-hidden">
                         <div id="current-progress" class="bg-textMain h-full w-0 transition-all duration-1000 ease-linear"></div>
                     </div>
                     <div class="flex justify-between items-baseline">
@@ -204,8 +197,8 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-hidden flex flex-col border-t border-grid pt-[3cqw]">
-                <h3 id="label-today" class="text-[3cqw] font-bold text-sub uppercase tracking-widest mb-[2cqw]">Today's Plan</h3>
+            <div class="flex-1 overflow-hidden flex flex-col border-t border-grid pt-6">
+                <h3 id="label-today" class="text-[4.5cqw] font-bold text-sub uppercase tracking-widest mb-4">Today's Plan</h3>
                 <div id="todays-list" class="flex-1 overflow-y-auto no-scrollbar pr-1 space-y-1"></div>
             </div>
         </aside>
@@ -240,7 +233,7 @@
         </main>
     </div>
 
-    <!-- Disambiguation Menu -->
+    <!-- Select Overlap Menu -->
     <div id="select-menu" class="select-menu">
         <div class="text-[10px] font-bold text-textSub uppercase tracking-widest mb-2 px-2">Select Task</div>
         <div id="select-list"></div>
@@ -250,19 +243,11 @@
     <div id="modal-overlay" class="fixed inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-300 opacity-0 cursor-pointer">
         <div class="glass-modal w-[440px] rounded-xl p-10 transform scale-95 transition-transform duration-300 shadow-2xl cursor-default" id="modal-content" onclick="event.stopPropagation()">
             <input type="text" id="input-title" class="text-2xl font-light tracking-tight w-full bg-transparent border-none outline-none placeholder-gray-400 text-textMain mb-6" placeholder="Task Name...">
-
             <div class="mb-6">
                 <label id="lbl-day" class="text-[10px] font-bold text-textSub uppercase tracking-widest mb-2 block">Day of Week</label>
-                <div class="relative">
-                    <select id="input-day-select" class="clean-input text-sm appearance-none cursor-pointer bg-transparent relative z-10"></select>
-                    <div class="absolute right-0 top-2 pointer-events-none text-textSub">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                </div>
+                <div id="input-day-container" class="flex gap-1"></div>
             </div>
-
             <div class="mb-6 flex gap-4" id="color-picker"></div>
-
             <div class="grid grid-cols-2 gap-8 mb-6">
                 <div>
                     <label id="lbl-start" class="text-[10px] font-bold text-textSub uppercase tracking-widest mb-2 block">Start</label>
@@ -279,57 +264,42 @@
                     <input type="time" id="input-end" class="clean-input text-lg">
                 </div>
             </div>
-
             <div class="space-y-6 mb-6">
-                <div>
-                    <label id="lbl-notes" class="text-[10px] font-bold text-textSub uppercase tracking-widest mb-2 block">Notes</label>
-                    <input type="text" id="input-notes" class="clean-input text-sm" placeholder="...">
-                </div>
+                <input type="text" id="input-notes" class="clean-input text-sm" placeholder="Notes...">
                 <div class="flex items-center gap-4">
                      <label id="lbl-commute" class="text-[10px] font-bold text-textSub uppercase tracking-widest whitespace-nowrap">Commute</label>
                      <input type="range" id="input-commute" min="0" max="120" step="5" value="0" class="w-full h-0.5 bg-gray-200 dark:bg-gray-700 appearance-none rounded cursor-pointer accent-textMain">
                      <span class="text-xs font-medium text-textMain w-10 text-right" id="commute-val">0m</span>
                 </div>
             </div>
-
-            <div class="flex flex-col gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-6">
-                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" id="input-daily" class="rounded border-gray-300" onchange="toggleDaily()">
-                            <span id="lbl-daily" class="text-xs font-medium text-textMain">Daily</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" id="input-repeat" class="rounded border-gray-300" onchange="toggleRepeat()">
-                            <span id="lbl-repeat" class="text-xs font-medium text-textSub">Weekly</span>
-                        </label>
-                    </div>
-                    <div id="repeat-settings" class="hidden flex items-center gap-2 opacity-0 transition-opacity duration-300">
-                        <span id="lbl-stop" class="text-[10px] text-textSub uppercase">Stop after</span>
-                        <input type="number" id="input-repeat-weeks" class="clean-input w-8 text-center py-0 text-xs" placeholder="∞">
-                        <span id="lbl-wks" class="text-[10px] text-textSub uppercase">Wks</span>
-                    </div>
+            <div class="flex items-center justify-between pt-6 border-t border-grid">
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="input-daily" class="rounded" onchange="toggleDaily()"><span id="lbl-daily" class="text-xs font-medium text-textMain">Daily</span></label>
+                    <label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" id="input-repeat" class="rounded" onchange="toggleRepeat()"><span id="lbl-repeat" class="text-xs font-medium text-textSub">Weekly</span></label>
+                </div>
+                <div id="repeat-settings" class="hidden flex items-center gap-2 opacity-0 transition-opacity">
+                    <input type="number" id="input-repeat-weeks" class="clean-input w-8 text-center py-0 text-xs" placeholder="∞">
+                    <span id="lbl-wks" class="text-[10px] text-textSub uppercase">Wks</span>
                 </div>
             </div>
-
             <input type="hidden" id="input-id">
-            <input type="hidden" id="input-created"> 
-            
+            <input type="hidden" id="input-group-id">
+            <input type="hidden" id="input-created">
             <div class="mt-8 flex gap-4">
-                <button onclick="saveEvent()" id="btn-save" class="flex-1 bg-textMain text-bg py-4 rounded-lg text-xs font-bold uppercase tracking-[0.15em] hover:opacity-80 transition-opacity">Save</button>
-                <button onclick="deleteEvent()" id="btn-delete" class="px-6 py-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase tracking-[0.15em] transition-colors hidden">Delete</button>
+                <button onclick="saveEvent()" id="btn-save" class="flex-1 bg-textMain text-bg py-4 rounded-lg text-xs font-bold uppercase hover:opacity-80 transition-opacity">Save</button>
+                <button onclick="deleteEvent()" id="btn-delete" class="px-6 py-4 text-red-400 hover:text-red-600 text-xs font-bold uppercase hidden">Delete</button>
             </div>
         </div>
     </div>
 
     <script>
         const I18N = {
-            'en': { days: ['MON','TUE','WED','THU','FRI','SAT','SUN'], fullDays: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], focus: 'Current Focus', free: 'Free Time', today: "TODAY'S PLAN", start: 'Start', end: 'End', notes: 'Notes', commute: 'Commute', day: 'Day of Week', daily: 'Daily', repeat: 'Weekly', stop: 'Stop after', wks: 'Wks', nextDay: 'Next Day', save: 'Save', delete: 'Delete', weekPrefix: 'WEEK', back: 'Back to Today', placeholderTitle: 'Type your task...', placeholderNotes: 'Add details...', confirmDelete: 'Are you sure you want to delete ALL tasks? This cannot be undone.' },
-            'zh': { days: ['周一','周二','周三','周四','周五','周六','周日'], fullDays: ['周一','周二','周三','周四','周五','周六','周日'], focus: '当前专注', free: '空闲时间', today: "今日计划", start: '开始', end: '结束', notes: '备注', commute: '路程', day: '选择星期', daily: '每天', repeat: '每周', stop: '重复', wks: '周', nextDay: '次日', save: '保存', delete: '删除', weekPrefix: '第几周', back: '回到本周', placeholderTitle: '输入任务名称...', placeholderNotes: '添加详细信息...', confirmDelete: '确定要删除所有任务吗？此操作无法撤销。' },
-            'jp': { days: ['月','火','水','木','金','土','日'], fullDays: ['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'], focus: '現在集中', free: '自由時間', today: "今日の予定", start: '開始', end: '終了', notes: 'メモ', commute: '移動', day: '曜日', daily: '毎日', repeat: '毎週', stop: '期間', wks: '週間', nextDay: '翌日', save: '保存', delete: '削除', weekPrefix: '週', back: '今週に戻る', placeholderTitle: 'タスクを入力...', placeholderNotes: '詳細を追加...', confirmDelete: 'すべてのタスクを削除してもよろしいですか？この操作は取り消せません。' }
+            'en': { days:['MON','TUE','WED','THU','FRI','SAT','SUN'], fullDays:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], focus: 'Current Focus', free: 'Free Time', today: "TODAY'S PLAN", start: 'Start', end: 'End', notes: 'Notes', commute: 'Commute', day: 'Day of Week', daily: 'Daily', repeat: 'Weekly', stop: 'Stop after', wks: 'Wks', nextDay: 'Next Day', save: 'Save', delete: 'Delete', weekPrefix: 'WEEK', back: 'Back to Today', placeholderTitle: 'Type your task...', placeholderNotes: 'Add details...', confirmDelete: 'Are you sure?', import: 'Import', export: 'Export' },
+            'zh': { days:['周一','周二','周三','周四','周五','周六','周日'], fullDays:['周一','周二','周三','周四','周五','周六','周日'], focus: '当前专注', free: '空闲时间', today: "今日计划", start: '开始', end: '结束', notes: '备注', commute: '路程', day: '选择星期', daily: '每天', repeat: '每周', stop: '重复', wks: '周', nextDay: '次日', save: '保存', delete: '删除', weekPrefix: '第几周', back: '回到本周', placeholderTitle: '输入任务名称...', placeholderNotes: '添加详细信息...', confirmDelete: '确定要删除吗？', import: '导入', export: '导出' },
+            'jp': { days:['月','火','水','木','金','土','日'], fullDays:['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'], focus: '現在集中', free: '自由時間', today: "今日の予定", start: '開始', end: '終了', notes: 'メモ', commute: '移動', day: '曜日', daily: '毎日', repeat: '毎週', stop: '期間', wks: '週間', nextDay: '翌日', save: '保存', delete: '削除', weekPrefix: '週', back: '今週に戻る', placeholderTitle: 'タスクを入力...', placeholderNotes: '詳細を追加...', confirmDelete: '削除してもよろしいですか？', import: '入力', export: '出力' }
         };
 
-        const PALETTE = [
+        const PALETTE =[
             { light: '#111827', dark: '#f3f4f6' }, { light: '#57534e', dark: '#d6d3d1' },
             { light: '#be123c', dark: '#fb7185' }, { light: '#c2410c', dark: '#fb923c' },
             { light: '#15803d', dark: '#4ade80' }, { light: '#0e7490', dark: '#22d3ee' },
@@ -339,20 +309,14 @@
 
         let currentLang = localStorage.getItem('flowweek_lang') || 'en';
         let isDark = localStorage.getItem('flowweek_dark') === 'true';
-        let events = JSON.parse(localStorage.getItem('flowweek_ultra_events')) || [];
+        let events = JSON.parse(localStorage.getItem('flowweek_ultra_events')) ||[];
         let currentViewDate = getMonday(new Date());
         let dragData = { active: false, startYPct: 0, colIndex: null, el: null };
 
         window.onload = () => {
             const savedWidth = localStorage.getItem('flowweek_sidebar_width');
             if(savedWidth) document.documentElement.style.setProperty('--sidebar-width', savedWidth);
-            applyTheme();
-            setLang(currentLang);
-            initColorPicker();
-            initClock();
-            setupDrag();
-            setupResizer();
-            setupModalOverlay();
+            applyTheme(); setLang(currentLang); initColorPicker(); initClock(); setupDrag(); setupResizer(); setupModalOverlay();
             document.body.addEventListener('click', closeSelectMenu);
             document.getElementById('input-commute').addEventListener('input', e => {
                 document.getElementById('commute-val').innerText = e.target.value + 'm';
@@ -368,26 +332,11 @@
 
         function resetUI() {
             isDark = false; localStorage.setItem('flowweek_dark', 'false'); applyTheme();
-            resetToToday();
-            document.documentElement.style.setProperty('--sidebar-width', '320px');
+            resetToToday(); document.documentElement.style.setProperty('--sidebar-width', '320px');
             localStorage.removeItem('flowweek_sidebar_width');
-            initColorPicker();
-            loadEvents();
+            initColorPicker(); loadEvents();
         }
 
-        function prevWeek() { currentViewDate.setDate(currentViewDate.getDate() - 7); updateView(); }
-        function nextWeek() { currentViewDate.setDate(currentViewDate.getDate() + 7); updateView(); }
-        function resetToToday() { currentViewDate = getMonday(new Date()); updateView(); }
-        function updateView() {
-            const todayMonday = getMonday(new Date());
-            const isCurrentWeek = currentViewDate.getTime() === todayMonday.getTime();
-            const btn = document.getElementById('btn-back-today');
-            btn.style.opacity = isCurrentWeek ? '0' : '1'; btn.style.pointerEvents = isCurrentWeek ? 'none' : 'auto';
-            const t = I18N[currentLang];
-            const weekNum = getWeekNumber(currentViewDate);
-            document.getElementById('week-number-cell').innerText = currentLang === 'zh' ? `第 ${weekNum} 周` : `${t.weekPrefix} ${weekNum}`;
-            initGrid(); loadEvents(); initClock();
-        }
         function setLang(lang) {
             currentLang = lang; localStorage.setItem('flowweek_lang', lang);
             document.querySelectorAll('.lang-switch').forEach(el => el.classList.remove('active'));
@@ -395,131 +344,101 @@
             const t = I18N[lang];
             document.getElementById('label-focus').innerText = t.focus; document.getElementById('label-today').innerText = t.today;
             document.getElementById('lbl-start').innerText = t.start; document.getElementById('lbl-end').innerText = t.end;
-            document.getElementById('lbl-notes').innerText = t.notes; document.getElementById('lbl-commute').innerText = t.commute;
-            document.getElementById('lbl-repeat').innerText = t.repeat; document.getElementById('lbl-daily').innerText = t.daily;
-            document.getElementById('lbl-next-day').innerText = t.nextDay; document.getElementById('lbl-stop').innerText = t.stop;
+            document.getElementById('lbl-commute').innerText = t.commute; document.getElementById('lbl-repeat').innerText = t.repeat; 
+            document.getElementById('lbl-daily').innerText = t.daily; document.getElementById('lbl-next-day').innerText = t.nextDay;
             document.getElementById('lbl-wks').innerText = t.wks; document.getElementById('lbl-day').innerText = t.day;
             document.getElementById('btn-save').innerText = t.save; document.getElementById('btn-delete').innerText = t.delete;
             document.getElementById('btn-back-today').innerText = t.back;
-            document.getElementById('input-title').placeholder = t.placeholderTitle; document.getElementById('input-notes').placeholder = t.placeholderNotes;
+            document.getElementById('label-import').innerText = t.import;
+            document.getElementById('label-export').innerText = t.export;
             updateView();
         }
 
+        function updateView() {
+            const todayMonday = getMonday(new Date());
+            const isCurrentWeek = currentViewDate.getTime() === todayMonday.getTime();
+            const btn = document.getElementById('btn-back-today');
+            btn.style.opacity = isCurrentWeek ? '0' : '1'; btn.style.pointerEvents = isCurrentWeek ? 'none' : 'auto';
+            const weekNum = getWeekNumber(currentViewDate);
+            document.getElementById('week-number-cell').innerText = currentLang === 'zh' ? `第 ${weekNum} 周` : `${I18N[currentLang].weekPrefix} ${weekNum}`;
+            initGrid(); loadEvents(); initClock();
+        }
+
         function initGrid() {
-            const header = document.getElementById('calendar-header');
-            const t = I18N[currentLang];
+            const header = document.getElementById('calendar-header'), t = I18N[currentLang];
             const today = new Date(); today.setHours(0,0,0,0);
-            const oldCols = header.querySelectorAll('.date-col'); oldCols.forEach(el => el.remove());
+            header.querySelectorAll('.date-col').forEach(el => el.remove());
             const rightArrow = header.querySelector('.nav-circle-btn.right-4');
             for(let i=0; i<7; i++) {
                 let d = new Date(currentViewDate); d.setDate(d.getDate() + i);
                 const isToday = d.getTime() === today.getTime();
                 const div = document.createElement('div');
                 div.className = `date-col flex flex-col items-center justify-center border-r border-grid relative group ${isToday ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`;
-                div.innerHTML = `<span class="text-[9px] font-bold tracking-widest ${isToday ? 'text-red-600 dark:text-red-400' : 'text-gray-300 dark:text-gray-600'} mb-1 transition-colors group-hover:text-gray-500">${t.days[i]}</span><span class="text-lg font-light ${isToday ? 'text-red-600 dark:text-red-400 font-normal' : 'text-textMain'}">${d.getDate()}</span>`;
+                div.innerHTML = `<span class="text-[9px] font-bold tracking-widest ${isToday ? 'text-red-600 dark:text-red-400' : 'text-gray-300 dark:text-gray-600'} mb-1">${t.days[i]}</span><span class="text-lg font-light ${isToday ? 'text-red-600 dark:text-red-400 font-normal' : 'text-textMain'}">${d.getDate()}</span>`;
                 header.insertBefore(div, rightArrow);
             }
-            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('date-display').innerText = today.toLocaleDateString(currentLang === 'en' ? 'en-US' : (currentLang === 'jp' ? 'ja-JP' : 'zh-CN'), dateOptions).toUpperCase();
             const timeCol = document.getElementById('time-column'); timeCol.innerHTML = '';
             for(let i=0; i<24; i++) {
                 const div = document.createElement('div'); div.className = 'hour-cell';
                 const labelDiv = document.createElement('div'); labelDiv.className = 'time-label-cell';
-                const isHeavy = i%2===0;
-                const textClass = isHeavy ? 'text-textMain font-medium opacity-90' : 'text-gray-300 dark:text-gray-600 font-light opacity-60';
-                labelDiv.innerHTML = `<span class="text-[10px] ${textClass}">${i.toString().padStart(2,'0')}:00</span>`;
+                labelDiv.innerHTML = `<span class="text-[10px] ${i%2===0 ? 'text-textMain font-medium opacity-90' : 'text-gray-300 dark:text-gray-600 font-light opacity-60'}">${i.toString().padStart(2,'0')}:00</span>`;
                 div.appendChild(labelDiv); timeCol.appendChild(div);
             }
-            const grid = document.getElementById('calendar-grid');
-            const redLine = document.getElementById('red-line');
+            const grid = document.getElementById('calendar-grid'), redLine = document.getElementById('red-line');
             Array.from(grid.children).forEach(c => { if(c!==timeCol && c!==redLine) c.remove(); });
             for(let i=0; i<7; i++) {
-                const col = document.createElement('div'); col.className = 'day-column border-r border-grid relative group hover:bg-gray-50/30 dark:hover:bg-white/5 transition-colors'; col.dataset.day = i;
-                for(let h=0; h<24; h++) { const cell = document.createElement('div'); cell.className = 'hour-cell w-full h-full'; const half = document.createElement('div'); half.className = 'half-hour-line'; cell.appendChild(half); col.appendChild(cell); }
+                let d = new Date(currentViewDate); d.setDate(d.getDate() + i);
+                const isToday = d.getTime() === today.getTime();
+                const col = document.createElement('div'); 
+                col.className = `day-column border-r border-grid relative group transition-colors ${isToday ? 'bg-red-50/50 dark:bg-red-900/10' : 'hover:bg-gray-50/30 dark:hover:bg-white/5'}`; 
+                col.dataset.day = i;
+                for(let h=0; h<24; h++) { const cell = document.createElement('div'); cell.className = 'hour-cell w-full h-full'; cell.appendChild(Object.assign(document.createElement('div'), {className:'half-hour-line'})); col.appendChild(cell); }
                 grid.insertBefore(col, redLine);
             }
         }
 
         function loadEvents() {
             document.querySelectorAll('.event-card, .commute-card').forEach(e => e.remove());
-            const viewStartTs = currentViewDate.getTime();
-            const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+            const viewStartTs = currentViewDate.getTime(), oneWeekMs = 7 * 24 * 60 * 60 * 1000;
             events.forEach(ev => {
-                let currentWeekCount = 1; let isValidWeek = true;
+                let isValidWeek = true;
                 if (ev.repeat || ev.daily) {
-                     let eventStartWeek = ev.weekStart; if (!eventStartWeek && ev.created) eventStartWeek = getMonday(new Date(ev.created)).getTime();
-                     if (eventStartWeek) {
-                         const diffWeeks = Math.round((viewStartTs - eventStartWeek) / oneWeekMs);
-                         currentWeekCount = diffWeeks + 1;
-                         if (currentWeekCount < 1) isValidWeek = false;
-                         if (ev.repeatWeeks > 0 && currentWeekCount > ev.repeatWeeks) isValidWeek = false;
-                     }
-                } else {
-                    if (ev.weekStart && ev.weekStart !== viewStartTs) {
-                         const prevViewStartTs = new Date(currentViewDate); prevViewStartTs.setDate(prevViewStartTs.getDate()-7);
-                         if(ev.weekStart !== prevViewStartTs.getTime()) isValidWeek = false;
-                    }
-                }
+                     let eventStartWeek = ev.weekStart || getMonday(new Date(ev.created)).getTime();
+                     const diffWeeks = Math.round((viewStartTs - eventStartWeek) / oneWeekMs);
+                     if (diffWeeks < 0 || (ev.repeatWeeks > 0 && diffWeeks + 1 > ev.repeatWeeks)) isValidWeek = false;
+                } else if (ev.weekStart && ev.weekStart !== viewStartTs) isValidWeek = false;
                 if (!isValidWeek) return;
 
                 for(let colIndex=0; colIndex<7; colIndex++) {
                     const col = document.querySelector(`.day-column[data-day="${colIndex}"]`);
                     if(!col) continue;
-                    
-                    let shouldRenderHead = false;
-                    if(ev.daily) shouldRenderHead = true;
-                    else if(ev.repeat) { if(ev.dayIndex === colIndex) shouldRenderHead = true; }
-                    else { if(ev.weekStart === viewStartTs && ev.dayIndex === colIndex) shouldRenderHead = true; }
-
-                    if(shouldRenderHead) {
-                        const [sH, sM] = ev.start.split(':').map(Number); const [eH, eM] = ev.end.split(':').map(Number);
-                        let start = sH*60 + sM; let end = eH*60 + eM; if(ev.nextDay) end += 1440;
-                        const displayHeight = Math.min(end, 1440) - start;
-                        renderEventBlock(col, start, displayHeight, ev, false, currentWeekCount, colIndex);
-                        if(ev.commute > 0) {
-                            let cStart = start - ev.commute;
-                            if (cStart < 0) {
-                                renderCommuteBlock(col, 0, start);
-                                const prevDayIdx = (colIndex - 1 + 7) % 7;
-                                let prevCol = document.querySelector(`.day-column[data-day="${prevDayIdx}"]`);
-                                if(prevCol) renderCommuteBlock(prevCol, 1440 + cStart, Math.abs(cStart));
-                            } else renderCommuteBlock(col, cStart, ev.commute);
-                        }
+                    if(ev.daily || (ev.repeat && ev.dayIndex === colIndex) || (!ev.repeat && ev.weekStart === viewStartTs && ev.dayIndex === colIndex)) {
+                        const[sH, sM] = ev.start.split(':').map(Number), [eH, eM] = ev.end.split(':').map(Number);
+                        let start = sH*60 + sM, end = eH*60 + eM; if(ev.nextDay) end += 1440;
+                        renderEventBlock(col, start, Math.min(end, 1440) - start, ev, false, colIndex);
+                        if(ev.commute > 0) renderCommuteBlock(col, start - ev.commute, ev.commute);
                     }
                     if(ev.nextDay) {
-                        let shouldRenderTail = false;
-                        const prevDayIndex = (colIndex - 1 + 7) % 7;
-                        if(ev.daily) shouldRenderTail = true;
-                        else if(ev.repeat) { if(ev.dayIndex === prevDayIndex) shouldRenderTail = true; }
-                        else {
-                            if(colIndex > 0) { if(ev.weekStart === viewStartTs && ev.dayIndex === prevDayIndex) shouldRenderTail = true; }
-                            else { const prevViewStartTs = new Date(currentViewDate); prevViewStartTs.setDate(prevViewStartTs.getDate()-7); if(ev.weekStart === prevViewStartTs.getTime() && ev.dayIndex === 6) shouldRenderTail = true; }
-                        }
-                        if(shouldRenderTail) {
-                            const [eH, eM] = ev.end.split(':').map(Number);
-                            renderEventBlock(col, 0, eH*60 + eM, ev, true, currentWeekCount, colIndex);
+                        const prevIdx = (colIndex - 1 + 7) % 7;
+                        if(ev.daily || (ev.repeat && ev.dayIndex === prevIdx) || (!ev.repeat && ev.dayIndex === prevIdx && ev.weekStart === viewStartTs)) {
+                            const[eH, eM] = ev.end.split(':').map(Number);
+                            renderEventBlock(col, 0, eH*60 + eM, ev, true, colIndex);
                         }
                     }
                 }
             });
         }
 
-        function renderEventBlock(col, topMin, heightMin, ev, isTail, weekCount, colIndex) {
+        function renderEventBlock(col, topMin, heightMin, ev, isTail, colIndex) {
             if(heightMin <= 0) return;
-            const top = (topMin / 1440) * 100;
-            const height = (heightMin / 1440) * 100;
-            const pEntry = findPaletteEntry(ev.color);
-            const color = getThemeColor(pEntry);
+            const top = (topMin / 1440) * 100, height = (heightMin / 1440) * 100;
+            const color = getThemeColor(findPaletteEntry(ev.color));
+            
             const el = document.createElement('div');
-            el.className = 'event-card absolute w-[94%] left-[3%] z-10 flex flex-col justify-center px-3 py-1 overflow-hidden transition-all cursor-pointer hover:shadow-md bg-card';
-            el.style.top = `${top}%`; el.style.height = `${height}%`;
-            el.style.backgroundColor = hexToRgba(color, 0.15); el.style.borderLeft = `3px solid ${color}`; el.style.color = color;
+            el.className = 'event-card absolute w-[94%] left-[3%] z-10 flex flex-col justify-center px-3 py-1 overflow-hidden transition-all cursor-pointer bg-card border-l-[3px]';
+            el.style.cssText = `top:${top}%; height:${height}%; background-color:${hexToRgba(color, 0.15)}; border-color:${color}; color:${color};`;
             el.dataset.eventId = ev.id;
-            if(isTail) { el.style.borderTopLeftRadius='0'; el.style.borderTopRightRadius='0'; el.style.opacity='0.8'; }
-            let icon = ''; let countInfo = '';
-            if(ev.repeat || ev.daily) { icon = '⟳'; if(ev.daily) icon += 'D'; if(ev.repeatWeeks > 0) countInfo = `<span class="text-[9px] font-bold opacity-100 bg-black/5 dark:bg-white/10 px-1 rounded ml-1">${weekCount}/${ev.repeatWeeks}</span>`; }
-            if(isTail) icon += ' ↳';
-            el.innerHTML = `<div class="flex items-center justify-between w-full"><div class="font-medium text-[11px] leading-tight truncate flex-1">${ev.title} <span class="opacity-50 text-[9px]">${icon}</span></div>${countInfo}</div>${height > 2.5 ? `<div class="text-[9px] opacity-60 font-light truncate mt-0.5">${isTail ? 'Ends' : ev.start} - ${isTail ? ev.end : (ev.nextDay ? '...' : ev.end)}</div>` : ''}`;
+            el.innerHTML = `<div class="font-medium text-[11px] leading-tight truncate">${ev.title}</div><div class="text-[9px] opacity-60 truncate mt-[1px]">${ev.start} - ${ev.end}</div>`;
             el.onclick = e => { e.stopPropagation(); handleEventClick(ev, colIndex, e); };
             col.appendChild(el);
         }
@@ -527,169 +446,305 @@
         function handleEventClick(targetEv, colIndex, mouseEvent) {
             const col = document.querySelector(`.day-column[data-day="${colIndex}"]`);
             const cards = Array.from(col.querySelectorAll('.event-card'));
-            const getBounds = (el) => { const t = parseFloat(el.style.top); const h = parseFloat(el.style.height); return { start: t, end: t + h }; }
-            const clickedBounds = getBounds(mouseEvent.currentTarget);
-            const overlappingCards = cards.filter(card => {
-                if (card === mouseEvent.currentTarget) return true;
-                const b = getBounds(card);
-                return Math.max(clickedBounds.start, b.start) < Math.min(clickedBounds.end, b.end);
-            });
-            if (overlappingCards.length > 1) showSelectMenu(overlappingCards, mouseEvent.clientX, mouseEvent.clientY);
+            const getB = (el) => { const t = parseFloat(el.style.top), h = parseFloat(el.style.height); return { s: t, e: t + h }; }
+            const clickedB = getB(mouseEvent.currentTarget);
+            const overlaps = cards.filter(c => { const b = getB(c); return Math.max(clickedB.s, b.s) < Math.min(clickedB.e, b.e); });
+            if (overlaps.length > 1) showSelectMenu(overlaps, mouseEvent.clientX, mouseEvent.clientY);
             else openModal(targetEv);
         }
 
         function showSelectMenu(cards, x, y) {
-            const menu = document.getElementById('select-menu');
-            const list = document.getElementById('select-list');
+            const menu = document.getElementById('select-menu'), list = document.getElementById('select-list');
             list.innerHTML = '';
             cards.forEach(card => {
-                const evId = card.dataset.eventId;
-                const ev = events.find(e => e.id === evId);
+                const ev = events.find(e => e.id === card.dataset.eventId);
                 if (!ev) return;
                 const item = document.createElement('div');
                 item.className = 'select-item text-xs font-medium text-textMain';
-                const pEntry = findPaletteEntry(ev.color);
-                const color = getThemeColor(pEntry);
-                item.innerHTML = `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${color}"></div>${ev.title}</div><span class="text-[10px] opacity-50">${ev.start}</span>`;
+                item.innerHTML = `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${getThemeColor(findPaletteEntry(ev.color))}"></div>${ev.title}</div><span class="text-[10px] opacity-50">${ev.start}</span>`;
                 item.onclick = (e) => { e.stopPropagation(); closeSelectMenu(); openModal(ev); };
                 list.appendChild(item);
             });
-            const wh = window.innerHeight;
-            let top = y + 10;
-            if (top + 150 > wh) top = y - 150;
-            menu.style.left = `${x}px`; menu.style.top = `${top}px`; menu.classList.add('open');
+            menu.style.left = `${x}px`; menu.style.top = `${y}px`; menu.classList.add('open');
         }
         function closeSelectMenu() { document.getElementById('select-menu').classList.remove('open'); }
 
         function renderCommuteBlock(col, startMin, duration) {
-            const cTop = (startMin/1440)*100;
-            const cH = (duration/1440)*100;
-            const cel = document.createElement('div');
-            cel.className = 'commute-card absolute w-[94%] left-[3%] z-0 flex items-end justify-center pb-1 text-[9px] text-textSub';
-            cel.style.cssText = `top:${cTop}%; height:${cH}%; background: repeating-linear-gradient(45deg, var(--grid-line), var(--grid-line) 5px, var(--card-bg) 5px, var(--card-bg) 10px); border-left: 1px dashed var(--text-sub);`;
-            cel.innerText = `${duration}m`;
-            col.appendChild(cel);
+            if(startMin < 0) return;
+            const el = document.createElement('div');
+            el.className = 'commute-card absolute w-[94%] left-[3%] z-0 flex items-end justify-center pb-0.5 text-[9px] font-bold text-textMain opacity-50';
+            el.style.cssText = `top:${(startMin/1440)*100}%; height:${(duration/1440)*100}%; background: repeating-linear-gradient(45deg, var(--grid-line), var(--grid-line) 5px, transparent 5px, transparent 10px);`;
+            el.innerText = `${duration}m`;
+            col.appendChild(el);
         }
 
         function initClock() {
             const update = () => {
-                const now = new Date();
-                const h = now.getHours(); const m = now.getMinutes(); const totalMin = h*60 + m;
+                const now = new Date(), h = now.getHours(), m = now.getMinutes(), totalMin = h*60 + m;
                 document.getElementById('clock-display').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
-                const todayMidnight = getMonday(new Date());
-                const viewMidnight = new Date(currentViewDate); viewMidnight.setHours(0,0,0,0);
-                const isCurrentWeek = todayMidnight.getTime() === viewMidnight.getTime();
+                const isCur = getMonday(new Date()).getTime() === currentViewDate.getTime();
                 const line = document.getElementById('red-line');
-                if(isCurrentWeek) { const pct = (totalMin/1440)*100; line.style.display = 'block'; line.style.top = `${pct}%`; } else { line.style.display = 'none'; }
-                updateStatus(now.getDay(), totalMin);
-                renderTodoList(totalMin);
+                if(isCur) { line.style.display = 'block'; line.style.top = `${(totalMin/1440)*100}%`; } else { line.style.display = 'none'; }
+                updateStatus(now.getDay(), totalMin); renderTodoList(totalMin);
+                const dOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('date-display').innerText = new Date().toLocaleDateString(currentLang === 'en' ? 'en-US' : (currentLang === 'jp' ? 'ja-JP' : 'zh-CN'), dOptions).toUpperCase();
             };
             update(); setInterval(update, 1000);
         }
 
         function renderTodoList(nowMin) {
-            const list = document.getElementById('todays-list');
-            list.innerHTML = '';
-            const todayIndex = (new Date().getDay() + 6) % 7;
-            const todaysEvents = events.filter(e => {
-                if(e.daily) return true;
-                if(e.repeat && e.dayIndex === todayIndex) return true;
-                if(e.weekStart === getMonday(new Date()).getTime() && e.dayIndex === todayIndex) return true;
-                if(e.nextDay) {
-                    const prevDay = (todayIndex - 1 + 7) % 7;
-                    if(e.daily || (e.repeat && e.dayIndex === prevDay)) return true;
-                    if(!e.repeat && !e.daily && e.dayIndex === prevDay) { if (e.weekStart === getMonday(new Date()).getTime()) return true; }
-                }
-                return false;
-            }).sort((a, b) => {
-                const [h1, m1] = a.start.split(':').map(Number); const [h2, m2] = b.start.split(':').map(Number);
-                return (h1*60+m1) - (h2*60+m2);
-            });
-            if(todaysEvents.length === 0) { list.innerHTML = `<div class="text-[10px] text-textSub text-center mt-4">No tasks today</div>`; return; }
+            const list = document.getElementById('todays-list'); list.innerHTML = '';
+            const todayIdx = (new Date().getDay() + 6) % 7;
+            const todaysEvents = events.filter(e => e.daily || (e.repeat && e.dayIndex === todayIdx) || (e.dayIndex === todayIdx && e.weekStart === getMonday(new Date()).getTime()))
+                                      .sort((a,b) => a.start.localeCompare(b.start));
+            if(!todaysEvents.length) { list.innerHTML = '<div class="text-[10px] text-textSub text-center mt-4">No tasks today</div>'; return; }
             todaysEvents.forEach(e => {
-                const [sH, sM] = e.start.split(':').map(Number); const [eH, eM] = e.end.split(':').map(Number);
-                let start = sH*60+sM; let end = eH*60+eM; if(e.nextDay) end += 1440;
-                let status = 'future';
-                if(nowMin >= end) status = 'past'; else if(nowMin >= start && nowMin < end) status = 'current';
-                const item = document.createElement('div');
-                item.className = `task-item ${status}`;
-                item.innerHTML = `<span class="truncate pr-2">${e.title}</span><span class="font-mono opacity-80">${e.start}</span>`;
-                list.appendChild(item);
+                list.insertAdjacentHTML('beforeend', `<div class="task-item"><span class="truncate pr-2">${e.title}</span><span class="font-mono opacity-80">${e.start}</span></div>`);
             });
         }
 
         function updateStatus(sysDay, nowMin) {
-            const dayIndex = (sysDay + 6) % 7;
+            const dayIdx = (sysDay + 6) % 7;
             const active = events.find(e => {
-                const [sH, sM] = e.start.split(':').map(Number); const [eH, eM] = e.end.split(':').map(Number);
-                let s = sH*60+sM; let end = eH*60+eM; if(e.nextDay) end += 1440;
-                let isTodayActive = (e.daily || e.dayIndex === dayIndex) && (nowMin >= s && nowMin < end);
-                if(isTodayActive) return true;
-                if(e.nextDay) {
-                    const prevDay = (dayIndex - 1 + 7) % 7;
-                    const startedYesterday = (e.daily || e.dayIndex === prevDay);
-                    if(startedYesterday) { const tailEnd = end - 1440; if(nowMin < tailEnd) return true; }
-                }
-                return false;
+                const[sH, sM] = e.start.split(':').map(Number), [eH, eM] = e.end.split(':').map(Number);
+                let start = sH*60+sM, end = eH*60+eM; if(e.nextDay) end += 1440;
+                return (e.daily || e.dayIndex === dayIdx) && (nowMin >= start && nowMin < end);
             });
-            const wrapper = document.getElementById('live-status-wrapper');
-            const title = document.getElementById('current-task-title');
-            const bar = document.getElementById('current-progress');
-            const card = document.getElementById('current-card');
+            const wrap = document.getElementById('live-status-wrapper'), title = document.getElementById('current-task-title'), bar = document.getElementById('current-progress');
             if(active) {
-                wrapper.style.opacity = '1'; title.innerText = active.title; title.style.color = 'var(--text-main)'; 
+                wrap.style.opacity = '1'; title.innerText = active.title;
+                const[sH, sM] = active.start.split(':').map(Number),[eH, eM] = active.end.split(':').map(Number);
+                let start = sH*60+sM, end = eH*60+eM; if(active.nextDay) end += 1440;
+                bar.style.width = `${Math.min(100, Math.max(0, ((nowMin - start)/(end - start))*100))}%`;
+                bar.style.backgroundColor = getThemeColor(findPaletteEntry(active.color));
                 document.getElementById('current-time-range').innerText = `${active.start} - ${active.end}`;
-                const [sH, sM] = active.start.split(':').map(Number); const [eH, eM] = active.end.split(':').map(Number);
-                let start = sH*60+sM; let end = eH*60+eM; if(active.nextDay) end += 1440;
-                let currentProgressMin = nowMin; if(nowMin < (end-1440)) currentProgressMin = nowMin + 1440;
-                const total = end - start; const passed = currentProgressMin - start;
-                const pct = Math.min(100, Math.max(0, (passed/total)*100));
-                const pEntry = findPaletteEntry(active.color); const color = getThemeColor(pEntry);
-                bar.style.width = `${pct}%`; bar.style.backgroundColor = color;
-                card.style.paddingLeft = '16px'; card.style.borderLeftColor = color;
-                document.getElementById('current-remaining').innerText = `-${Math.floor(total - passed)}m`;
+                document.getElementById('current-remaining').innerText = `-${Math.floor(end - nowMin)}m`;
             } else {
-                wrapper.style.opacity = '0'; title.innerText = I18N[currentLang].free; title.style.color = 'var(--text-sub)';
-                document.getElementById('current-time-range').innerText = "";
-                bar.style.width = "0%"; card.style.paddingLeft = '0px'; card.style.borderLeftColor = 'transparent';
-                document.getElementById('current-remaining').innerText = "";
+                wrap.style.opacity = '0'; title.innerText = I18N[currentLang].free; bar.style.width = "0%";
+                document.getElementById('current-time-range').innerText = ""; document.getElementById('current-remaining').innerText = "";
             }
         }
 
-        function confirmDeleteAll() { const t = I18N[currentLang]; if(confirm(t.confirmDelete)) { events = []; localStorage.setItem('flowweek_ultra_events', JSON.stringify(events)); loadEvents(); renderTodoList(); updateStatus(); } }
-        function openCreateModal(day, sMin, eMin) { resetForm(); if(day===undefined) day = (new Date().getDay()+6)%7; const snap = m => Math.round(m/15)*15; if(!sMin) { const n=new Date(); sMin=snap(n.getHours()*60+n.getMinutes()+30); eMin=sMin+60; } else { sMin=snap(sMin); eMin=snap(eMin); if(eMin-sMin<15) eMin=sMin+30; } document.getElementById('input-day-select').value = day; document.getElementById('input-start').value = minToTime(sMin); document.getElementById('input-end').value = minToTime(eMin); document.getElementById('btn-delete').classList.add('hidden'); const dots = document.getElementById('color-picker').children; if(dots.length > 0) dots[0].click(); 
-            const container = document.getElementById('app-container');
-            // Fix: Calculate time label position based on mouse Y if needed, for now simple showModal
-            // Inject Time Labels into dragging box (added feature request from user's implied context if they wanted)
-            // For now, simple static modal
-            showModal(); 
+        function prevWeek() { currentViewDate.setDate(currentViewDate.getDate() - 7); updateView(); }
+        function nextWeek() { currentViewDate.setDate(currentViewDate.getDate() + 7); updateView(); }
+        function resetToToday() { currentViewDate = getMonday(new Date()); updateView(); }
+
+        function openCreateModal(day, sMin, eMin) { 
+            resetForm(); if(day===undefined) day = (new Date().getDay()+6)%7;
+            const snap = m => Math.round(m/15)*15;
+            sMin = snap(sMin || 480); eMin = snap(eMin || sMin + 60);
+            const btn = document.querySelector(`.day-btn[data-day="${day}"]`);
+            if(btn) btn.classList.add('active');
+            document.getElementById('input-start').value = minToTime(sMin); document.getElementById('input-end').value = minToTime(eMin);
+            document.getElementById('btn-delete').classList.add('hidden'); showModal(); 
         }
-        function openModal(ev) { resetForm(); document.getElementById('input-id').value = ev.id; document.getElementById('input-title').value = ev.title; document.getElementById('input-day-select').value = ev.dayIndex; document.getElementById('input-start').value = ev.start; document.getElementById('input-end').value = ev.end; document.getElementById('input-notes').value = ev.notes||''; document.getElementById('input-commute').value = ev.commute||0; document.getElementById('commute-val').innerText = (ev.commute||0)+'m'; document.getElementById('input-repeat').checked = ev.repeat || false; document.getElementById('input-daily').checked = ev.daily || false; document.getElementById('input-next-day').checked = ev.nextDay || false; document.getElementById('input-created').value = ev.created || ''; if(ev.repeat) document.getElementById('input-repeat-weeks').value = ev.repeatWeeks || ""; toggleRepeat(); const dots = document.getElementById('color-picker').children; Array.from(dots).forEach(d => { if(d.dataset.color===ev.color) d.click(); }); document.getElementById('btn-delete').classList.remove('hidden'); showModal(); }
-        function saveEvent() { const id = document.getElementById('input-id').value; const title = document.getElementById('input-title').value || "Untitled"; const start = document.getElementById('input-start').value; const end = document.getElementById('input-end').value; const colorEl = document.querySelector('#color-picker .ring-1'); 
-            const color = colorEl ? colorEl.dataset.color : PALETTE[0].light; 
-            const dayIndex = parseInt(document.getElementById('input-day-select').value); const nextDay = document.getElementById('input-next-day').checked; const daily = document.getElementById('input-daily').checked; const repeat = document.getElementById('input-repeat').checked; if (!nextDay && start >= end) { alert('Time error'); return; } const existingCreated = document.getElementById('input-created').value; const created = existingCreated ? parseInt(existingCreated) : Date.now(); const ev = { id: id || Date.now().toString(), created: created, weekStart: currentViewDate.getTime(), dayIndex: dayIndex, title, start, end, color, notes: document.getElementById('input-notes').value, commute: parseInt(document.getElementById('input-commute').value)||0, repeat: repeat, daily: daily, nextDay: nextDay, repeatWeeks: repeat ? (parseInt(document.getElementById('input-repeat-weeks').value)||0) : 0 }; if(id) { const i = events.findIndex(e=>e.id===id); if(i>-1) events[i]=ev; } else events.push(ev); localStorage.setItem('flowweek_ultra_events', JSON.stringify(events)); closeModal(); loadEvents(); const now = new Date(); updateStatus(now.getDay(), now.getHours()*60+now.getMinutes()); }
-        function deleteEvent() { const id = document.getElementById('input-id').value; events = events.filter(e=>e.id!==id); localStorage.setItem('flowweek_ultra_events', JSON.stringify(events)); closeModal(); loadEvents(); const now = new Date(); updateStatus(now.getDay(), now.getHours()*60+now.getMinutes()); }
-        function toggleDaily() { const d = document.getElementById('input-daily'); if(d.checked) { document.getElementById('input-repeat').checked = true; toggleRepeat(); } }
-        function toggleRepeat() { const w = document.getElementById('input-repeat'); const d = document.getElementById('input-daily'); const s = document.getElementById('repeat-settings'); if(w.checked) { s.classList.remove('hidden'); setTimeout(()=>s.classList.remove('opacity-0'),10); } else { d.checked=false; s.classList.add('opacity-0'); setTimeout(()=>s.classList.add('hidden'),300); } }
-        function resetForm() { document.getElementById('input-id').value=""; document.getElementById('input-created').value=""; document.getElementById('input-title').value=""; document.getElementById('input-notes').value=""; document.getElementById('input-commute').value=0; document.getElementById('commute-val').innerText="0m"; document.getElementById('input-repeat').checked=false; document.getElementById('input-daily').checked=false; document.getElementById('input-next-day').checked=false; document.getElementById('input-repeat-weeks').value=""; const sel=document.getElementById('input-day-select'); sel.innerHTML=""; I18N[currentLang].fullDays.forEach((d,i)=>{ const opt=document.createElement('option'); opt.value=i; opt.text=d; sel.appendChild(opt); }); toggleRepeat(); }
-        function showModal() { const o=document.getElementById('modal-overlay'); o.classList.remove('hidden'); setTimeout(()=>{ o.classList.remove('opacity-0'); document.getElementById('modal-content').classList.remove('scale-95'); document.getElementById('modal-content').classList.add('scale-100'); },10); }
-        function closeModal() { const o=document.getElementById('modal-overlay'); o.classList.add('opacity-0'); document.getElementById('modal-content').classList.add('scale-95'); setTimeout(()=>o.classList.add('hidden'),200); }
-        function initColorPicker() { const c=document.getElementById('color-picker'); c.innerHTML=''; PALETTE.forEach(p=>{ const d=document.createElement('div'); d.className='w-5 h-5 rounded-full cursor-pointer border border-gray-100 hover:scale-125 transition-transform'; d.style.backgroundColor=getThemeColor(p); d.dataset.color=p.light; d.onclick=()=>{ Array.from(c.children).forEach(x=>x.classList.remove('ring-1','ring-offset-2','ring-gray-400')); d.classList.add('ring-1','ring-offset-2','ring-gray-400'); }; c.appendChild(d); }); }
-        function setupResizer() { const resizer=document.getElementById('resizer'); const root=document.documentElement; let isResizing=false; resizer.addEventListener('mousedown',()=>{ isResizing=true; document.body.style.cursor='col-resize'; document.body.style.userSelect='none'; }); document.addEventListener('mousemove',(e)=>{ if(!isResizing)return; let w=e.clientX; if(w<240)w=240; if(w>window.innerWidth*0.5)w=window.innerWidth*0.5; root.style.setProperty('--sidebar-width',`${w}px`); }); document.addEventListener('mouseup',()=>{ if(isResizing){ isResizing=false; document.body.style.cursor=''; document.body.style.userSelect=''; localStorage.setItem('flowweek_sidebar_width',getComputedStyle(root).getPropertyValue('--sidebar-width')); } }); }
-        function setupModalOverlay() { const o=document.getElementById('modal-overlay'); o.addEventListener('click',(e)=>{ if(e.target===o)closeModal(); }); }
-        function setupDrag() { const g=document.getElementById('calendar-grid'); g.addEventListener('mousedown',e=>{ if(e.button!==0)return; const col=e.target.closest('.day-column'); if(!col||e.target.closest('.event-card'))return; dragData.active=true; dragData.colIndex=col.dataset.day; const r=col.getBoundingClientRect(); dragData.startYPct=((e.clientY-r.top)/col.clientHeight)*100; dragData.el=document.createElement('div'); dragData.el.className='absolute bg-textMain/10 border-l-2 border-textMain/30 w-[94%] left-[3%] z-20'; dragData.el.style.top=`${dragData.startYPct}%`; dragData.el.style.height='0%'; 
-        // Add Time Labels to Drag Element
-        dragData.el.innerHTML = `<span id="drag-s" class="absolute -top-4 left-0 text-[9px] font-bold bg-card text-textMain px-1 rounded shadow border border-grid"></span><span id="drag-e" class="absolute -bottom-4 right-0 text-[9px] font-bold bg-card text-textMain px-1 rounded shadow border border-grid"></span>`;
-        col.appendChild(dragData.el); }); window.addEventListener('mousemove',e=>{ if(!dragData.active)return; const col=dragData.el.parentElement; const h=col.clientHeight; let y=e.clientY-col.getBoundingClientRect().top; if(y<0)y=0; if(y>h)y=h; const cur=(y/h)*100; dragData.el.style.top=`${Math.min(dragData.startYPct,cur)}%`; dragData.el.style.height=`${Math.abs(cur-dragData.startYPct)}%`; 
-        // Update Labels
-        const topPct = Math.min(dragData.startYPct, cur); const heightPct = Math.abs(cur-dragData.startYPct);
-        const sMin = (topPct/100)*1440; const eMin = ((topPct+heightPct)/100)*1440;
-        const snap = m => Math.round(m/15)*15;
-        dragData.el.querySelector('#drag-s').innerText = minToTime(snap(sMin));
-        dragData.el.querySelector('#drag-e').innerText = minToTime(snap(eMin));
-        }); window.addEventListener('mouseup',()=>{ if(!dragData.active)return; dragData.active=false; if(dragData.el){ const t=parseFloat(dragData.el.style.top); const h=parseFloat(dragData.el.style.height); dragData.el.remove(); if(h>0.5)openCreateModal(dragData.colIndex,(t/100)*1440,((t+h)/100)*1440); } }); }
+
+        function openModal(ev) {
+            resetForm(); 
+            const groupId = ev.groupId || ev.id;
+            const related = events.filter(e => e.groupId === groupId || e.id === groupId);
+            
+            document.getElementById('input-id').value = ev.id;
+            document.getElementById('input-group-id').value = groupId;
+            document.getElementById('input-title').value = ev.title;
+            
+            related.forEach(e => {
+                const btn = document.querySelector(`.day-btn[data-day="${e.dayIndex}"]`);
+                if(btn) btn.classList.add('active');
+            });
+
+            document.getElementById('input-start').value = ev.start; 
+            document.getElementById('input-end').value = ev.end;
+            document.getElementById('input-notes').value = ev.notes||''; 
+            document.getElementById('input-commute').value = ev.commute||0;
+            document.getElementById('commute-val').innerText = (ev.commute||0)+'m';
+            document.getElementById('input-repeat').checked = ev.repeat; 
+            document.getElementById('input-next-day').checked = ev.nextDay;
+
+            if(related.length === 7) document.getElementById('input-daily').checked = true;
+            
+            toggleRepeat();
+            const dots = document.getElementById('color-picker').children; 
+            Array.from(dots).forEach(d => { if(d.dataset.color===ev.color) d.click(); });
+            document.getElementById('btn-delete').classList.remove('hidden'); 
+            showModal();
+        }
+
+        function saveEvent() {
+            const existingGroupId = document.getElementById('input-group-id').value;
+            const title = document.getElementById('input-title').value || "Untitled";
+            const start = document.getElementById('input-start').value, end = document.getElementById('input-end').value;
+            const color = document.querySelector('#color-picker .ring-1').dataset.color;
+            const notes = document.getElementById('input-notes').value || "";
+            const commute = parseInt(document.getElementById('input-commute').value) || 0;
+            const nextDay = document.getElementById('input-next-day').checked;
+            const repeat = document.getElementById('input-repeat').checked;
+            const repeatWeeks = repeat ? (parseInt(document.getElementById('input-repeat-weeks').value) || 0) : 0;
+            
+            const selectedDays = Array.from(document.querySelectorAll('.day-btn.active')).map(b => parseInt(b.dataset.day));
+            if(!nextDay && start >= end) { alert('Time Error'); return; }
+            if(!selectedDays.length) return;
+
+            if(existingGroupId) {
+                events = events.filter(e => (e.groupId !== existingGroupId && e.id !== existingGroupId));
+            }
+
+            const newGroupId = Date.now().toString();
+            selectedDays.forEach((d, idx) => {
+                events.push({ 
+                    id: (Date.now() + idx + 100).toString(), 
+                    groupId: newGroupId,
+                    created: Date.now(), 
+                    weekStart: currentViewDate.getTime(), 
+                    dayIndex: d, title, start, end, color, notes, commute, 
+                    daily: false, 
+                    repeat, nextDay, repeatWeeks 
+                });
+            });
+
+            localStorage.setItem('flowweek_ultra_events', JSON.stringify(events)); 
+            closeModal(); loadEvents();
+            const now = new Date();
+            updateStatus(now.getDay(), now.getHours()*60+now.getMinutes());
+            renderTodoList(now.getHours()*60+now.getMinutes());
+        }
+
+        function deleteEvent() {
+            const groupId = document.getElementById('input-group-id').value;
+            const id = document.getElementById('input-id').value;
+            const targetId = groupId || id;
+            if(targetId) {
+                events = events.filter(e => (e.groupId !== targetId && e.id !== targetId));
+                localStorage.setItem('flowweek_ultra_events', JSON.stringify(events));
+                closeModal(); loadEvents();
+                const now = new Date();
+                updateStatus(now.getDay(), now.getHours()*60+now.getMinutes());
+                renderTodoList(now.getHours()*60+now.getMinutes());
+            }
+        }
+
+        function toggleDaily() {
+            const isDaily = document.getElementById('input-daily').checked;
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                if(isDaily) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            if(isDaily) {
+                document.getElementById('input-repeat').checked = true;
+                toggleRepeat();
+            }
+        }
+
+        function toggleRepeat() {
+            const s = document.getElementById('repeat-settings');
+            if(document.getElementById('input-repeat').checked) {
+                s.classList.remove('hidden');
+                setTimeout(()=>s.classList.add('opacity-100'),10);
+            } else {
+                s.classList.add('hidden');
+            }
+        }
+        
+        function resetForm() {
+            document.getElementById('input-id').value="";
+            document.getElementById('input-group-id').value="";
+            document.getElementById('input-title').value="";
+            document.getElementById('input-notes').value="";
+            document.getElementById('input-commute').value=0;
+            document.getElementById('commute-val').innerText="0m";
+            document.getElementById('input-repeat').checked=false;
+            document.getElementById('input-daily').checked=false;
+            document.getElementById('input-next-day').checked=false; 
+            document.getElementById('input-repeat-weeks').value="";
+            
+            const container = document.getElementById('input-day-container');
+            container.innerHTML = "";
+            I18N[currentLang].days.forEach((d, i) => {
+                const b = document.createElement('div');
+                b.className = 'day-btn';
+                b.innerText = d;
+                b.dataset.day = i;
+                b.onclick = () => {
+                    b.classList.toggle('active');
+                    if(!b.classList.contains('active')) {
+                        document.getElementById('input-daily').checked = false;
+                    } else {
+                        const allActive = Array.from(document.querySelectorAll('.day-btn')).every(btn => btn.classList.contains('active'));
+                        if(allActive) {
+                            document.getElementById('input-daily').checked = true;
+                            document.getElementById('input-repeat').checked = true;
+                            toggleRepeat();
+                        }
+                    }
+                };
+                container.appendChild(b);
+            });
+            toggleRepeat();
+        }
+
+        function showModal() { const o=document.getElementById('modal-overlay'); o.classList.remove('hidden'); setTimeout(()=>o.classList.remove('opacity-0'),10); }
+        function closeModal() { const o=document.getElementById('modal-overlay'); o.classList.add('opacity-0'); setTimeout(()=>o.classList.add('hidden'),200); }
+        function initColorPicker() { const c=document.getElementById('color-picker'); c.innerHTML=''; PALETTE.forEach(p=>{ const d=document.createElement('div'); d.className='w-5 h-5 rounded-full cursor-pointer border hover:scale-125 transition-transform'; d.style.backgroundColor=getThemeColor(p); d.dataset.color=p.light; d.onclick=()=>{ Array.from(c.children).forEach(x=>x.classList.remove('ring-1','ring-offset-2','ring-gray-400')); d.classList.add('ring-1','ring-offset-2','ring-gray-400'); }; c.appendChild(d); }); }
+        
+        function setupResizer() { 
+            const r=document.getElementById('resizer'); let active=false;
+            r.onmousedown = () => { active=true; document.body.style.cursor='col-resize'; };
+            document.onmousemove = e => { if(!active) return; let w=e.clientX; if(w>240 && w<window.innerWidth/2) { document.documentElement.style.setProperty('--sidebar-width', w+'px'); localStorage.setItem('flowweek_sidebar_width', w+'px'); } };
+            document.onmouseup = () => { active=false; document.body.style.cursor=''; };
+        }
+        
+        function setupModalOverlay() { document.getElementById('modal-overlay').onclick = e => { if(e.target.id==='modal-overlay') closeModal(); }; }
+        
+        function setupDrag() {
+            const g = document.getElementById('calendar-grid');
+            const snap = m => Math.round(m / 15) * 15;
+            g.onmousedown = e => {
+                const col = e.target.closest('.day-column'); if (!col || e.target.closest('.event-card')) return;
+                dragData.active = true; dragData.colIndex = col.dataset.day;
+                const r = col.getBoundingClientRect(); dragData.startYPct = ((e.clientY - r.top) / col.clientHeight) * 100;
+                dragData.el = document.createElement('div');
+                dragData.el.className = 'absolute bg-textMain/10 border-l-2 border-textMain/30 w-[94%] left-[3%] z-20';
+                dragData.el.style.top = dragData.startYPct + '%';
+                dragData.el.innerHTML = `
+                    <div id="drag-s-lab" class="absolute -top-6 left-0 bg-textMain text-bg text-[9px] px-1 rounded font-bold shadow-sm"></div>
+                    <div id="drag-e-lab" class="absolute -bottom-6 left-0 bg-textMain text-bg text-[9px] px-1 rounded font-bold shadow-sm"></div>
+                `;
+                col.appendChild(dragData.el);
+            };
+            window.onmousemove = e => {
+                if (!dragData.active) return;
+                const col = dragData.el.parentElement, r = col.getBoundingClientRect();
+                let y = Math.max(0, Math.min(col.clientHeight, e.clientY - r.top));
+                const cur = (y / col.clientHeight) * 100;
+                const topPct = Math.min(dragData.startYPct, cur), hPct = Math.abs(cur - dragData.startYPct);
+                dragData.el.style.top = topPct + '%'; dragData.el.style.height = hPct + '%';
+                const sMin = snap((topPct / 100) * 1440), eMin = snap(((topPct + hPct) / 100) * 1440);
+                document.getElementById('drag-s-lab').innerText = minToTime(sMin);
+                document.getElementById('drag-e-lab').innerText = minToTime(eMin);
+            };
+            window.onmouseup = () => {
+                if (!dragData.active) return; dragData.active = false;
+                const t = parseFloat(dragData.el.style.top), h = parseFloat(dragData.el.style.height);
+                dragData.el.remove(); if (h > 0.5) openCreateModal(dragData.colIndex, (t / 100) * 1440, ((t + h) / 100) * 1440);
+            };
+        }
+
         function hexToRgba(hex,a){ let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-        function minToTime(m){ let h=Math.floor(m/60),min=Math.round(m%60); if(h>23)h=23; return `${h.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`; }
+        function minToTime(m){ let h=Math.floor(m/60),min=Math.round(m%60); return `${h.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`; }
+
+        function exportData() {
+            const dataStr = JSON.stringify(events, null, 2);
+            const link = document.createElement('a');
+            link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            link.download = 'flowweek_data.json'; link.click();
+        }
+        function triggerImport() { document.getElementById('import-input').click(); }
+        function importData(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => { try { events = JSON.parse(e.target.result); localStorage.setItem('flowweek_ultra_events', JSON.stringify(events)); loadEvents(); renderTodoList(); alert('Import OK'); } catch(err){ alert('Error'); } };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
