@@ -1,7 +1,8 @@
 # 周计划-html
 一页上完整浏览一周的时间安排
 
-FlowWeek 使用说明书
+FlowWeek 使用说明书<img width="2967" height="1737" alt="33174bbf3bcd9ba3a6174be86d242a2e" src="https://github.com/user-attachments/assets/6022ea7a-d20d-40e5-af8e-0eae26cd74f6" />
+
 欢迎使用 FlowWeek。这是一款融合了极简美学与强大逻辑的周计划工具，致力于通过自然的交互方式，帮助您从混乱的日程中找回秩序与专注。
 1. 快速开始 (Getting Started)
 界面布局
